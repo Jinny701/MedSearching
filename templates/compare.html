@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>药品比较</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #f5f7fa;
+      color: #333;
+      line-height: 1.6;
+      padding-top: 0; 
+    }
+
+    .navbar {
+      background-color: #003399;
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky; 
+      top: 0;
+      z-index: 100; 
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.2rem;
+    }
+
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 1rem;
+    }
+
+    .nav-links a:hover {
+      text-decoration: underline;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .compare-hero {
+      height: auto;
+      background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 1)),
+                  url("static/image/a1.jpg") center/cover;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 10rem 1rem;
+      position: relative;
+      z-index: 2;
+      transition: height 0.5s ease;
+    }
+    .compare-hero.shrink {
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+
+    .content-section {
+        transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+    }
+
+    .compare-hero h1 {
+      color: #003399;
+      margin-bottom: 1rem;
+      font-size: 2.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      transition: all 0.5s ease;
+    }
+    .compare-hero h1.shrink {
+        font-size: 1.5rem !important;
+        margin-bottom: 0.5rem;
+        align-self: flex-start;
+        margin-left: 10%;
+        margin-right: 10%;
+    }
+
+    .compare-instruction {
+      max-width: 700px;
+      color: #555;
+      margin-bottom: 2rem;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      transition: opacity 0.5s ease;
+    }
+    .compare-instruction.hidden {
+        opacity: 0;
+        display: none;
+    }
+
+    .compare-box-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px; 
+      align-items: center; 
+      width: 100%;
+      max-width: 700px; 
+      margin: 0 auto; 
+      transition: all 0.5s ease;
+      position: relative; 
+      z-index: 10; 
+    }
+    .compare-box-container.shrink {
+        align-self: flex-start;
+        margin-left: 10%;
+        margin-right: 10%;
+        gap: 8px;
+        align-items: stretch; 
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      justify-content: center;
+    }
+    .input-row.shrink {
+        gap: 5px;
+    }
+
+    .drug-input {
+      flex: 1;
+      padding: 14px 20px;
+      border: 1px solid #aaa;
+      border-radius: 30px;
+      font-size: 1.1rem;
+      outline: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: all 0.5s ease;
+    }
+    .drug-input.shrink {
+      padding: 8px 12px !important;
+      font-size: 0.9rem !important;
+    }
+
+    .drug-input:focus {
+      border-color: #003399;
+      box-shadow: 0 2px 12px rgba(0,51,153,0.2);
+    }
+
+    .remove-btn {
+      background: #ff6b6b;
+      color: white;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0; 
+    }
+    .remove-btn.shrink {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 12px !important;
+    }
+
+    .add-drug-btn, .compare-btn {
+      padding: 14px 28px;
+      background-color: #003399;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      z-index: 10; 
+    }
+    .add-drug-btn.shrink, .compare-btn.shrink {
+        padding: 8px 16px !important;
+        font-size: 0.9rem !important;
+    }
+
+    .add-drug-btn:hover, .compare-btn:hover {
+      background-color: #002166;
+    }
+
+    .add-drug-btn {
+      background-color: #28a745; 
+    }
+    .add-drug-btn:hover {
+      background-color: #218838;
+    }
+
+    .results-container {
+      margin: 10px;
+      display: none;
+      padding: 1rem 2rem;
+      position: relative;
+      z-index: 5;
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .results-count {
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .comparison-table th {
+      background-color: #003399;
+      color: white;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .comparison-table td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+
+    .comparison-table tr:hover {
+      background-color: #f5f5f5;
+    }
+
+    .attr-name {
+      background-color: #e6f0ff;
+      text-align: left !important;
+      font-weight: 600;
+      width: 200px;
+    }
+    .button-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .button-row.shrink {
+      gap: 8px;
+      justify-content: flex-start;
+    }
+    .placeholder-cell {
+      color: #999;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 120px auto 40px;
+      padding: 0 1rem;
+      position: relative;
+      z-index: 1;
+
+    }
+
+    .drug-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 2rem;
+    }
+
+    .drug-item {
+      background-color: white;
+      border-radius: 10px;
+      padding: 1.2rem;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      transition: transform 0.2s;
+    }
+
+    .drug-item:hover {
+      transform: translateY(-5px);
+    }
+
+    .drug-img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+    }
+
+    .drug-name {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #003399;
+    }
+
+    .drug-desc {
+      color: #666;
+      font-size: 0.95rem;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo">
+      <i class="fas fa-capsules"></i>
+      药品说明书智能检索系统
+    </div>
+    <div class="nav-links">
+      <a href="/"><i class="fas fa-robot"></i> 智能检索</a>
+      <a href="/search"><i class="fas fa-search"></i> 药品查询</a>
+      <a href="/compare"><i class="fas fa-scale-balanced"></i> 药品比较</a>
+      <a href="/knowledgegraph"><i class="fas fa-project-diagram"></i> 知识图谱</a>
+      <a href="/manual"><i class="fas fa-book"></i> 用户手册</a>
+    </div>
+  </nav>
+
+  <div class="compare-hero content-section" id="compare-hero">
+    <h1 id="compare-h1"><i class="fas fa-scale-balanced"></i> 药品比较</h1>
+    <p class="compare-instruction" id="compare-instruction">
+       请输入 <strong>2~4 种药品名称</strong>（如“阿司匹林”、“布洛芬”），点击“开始对比”后，系统将为您生成详细的药品参数对比表。
+    </p>
+    <div class="compare-box-container" id="compare-box-container">
+      <div class="input-row" id="input-row-1">
+        <input type="text" class="drug-input" placeholder="例如：阿司匹林" />
+        <button class="remove-btn" disabled>-</button>
+      </div>
+      <div class="input-row" id="input-row-2">
+        <input type="text" class="drug-input" placeholder="例如：布洛芬缓释胶囊" />
+        <button class="remove-btn">−</button>
+      </div>
+      <div class="button-row">
+        <button class="add-drug-btn" id="addDrugBtn">+ 添加药品</button>
+        <button class="compare-btn" id="compareBtn">开始对比</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container" id="drug-container">
+    <div class="drug-list">
+      
+      <div class="drug-item">
+        <img src="http://www.gdzjk.com/Public/upload/news/2021/12-31/61cea9911803d.jpg?text=阿司匹林" alt="阿司匹林片" class="drug-img" />
+        <div class="drug-name">阿司匹林肠溶片</div>
+        <div class="drug-desc">用于缓解轻至中度疼痛，如头痛、牙痛等。</div>
+      </div>
+      <div class="drug-item">
+        <img src="https://image.jianke.com/suo/upload/prodimage/201605/201652811948875!320x320.jpg?text=布洛芬" alt="布洛芬缓释胶囊" class="drug-img" />
+        <div class="drug-name">布洛芬缓释胶囊</div>
+        <div class="drug-desc">非甾体抗炎药，适用于关节炎及发热症状。</div>
+      </div>
+      <div class="drug-item">
+        <img src="https://image.jianke.com/upload/prodimage/201602wm/2016219112939381.jpg?text=奥美拉唑" alt="奥美拉唑" class="drug-img" />
+        <div class="drug-name">奥美拉唑肠溶胶囊</div>
+        <div class="drug-desc">用于治疗胃溃疡和反流性食管炎。</div>
+      </div>
+      <div class="drug-item">
+        <img src="https://image.jianke.com/upload/prodimage/201604wm/2016423102820289.jpg?text=氯雷他定" alt="氯雷他定" class="drug-img" />
+        <div class="drug-name">氯雷他定片</div>
+        <div class="drug-desc">抗过敏药，适用于季节性鼻炎、荨麻疹等。</div>
+      </div>
+      <div class="drug-item">
+        <img src="https://th.bing.com/th/id/OIP.cG5mVzkV5P2kgqzmGhMktQHaHa?w=203&h=203&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3?text=头孢克肟" alt="头孢克肟" class="drug-img" />
+        <div class="drug-name">头孢克肟分散片</div>
+        <div class="drug-desc">广谱抗生素，用于敏感菌引起的感染。</div>
+      </div>
+      <div class="drug-item">
+        <img src="https://th.bing.com/th/id/OIP.FVgUS5Gmck4Q2SuxKoKKxQHaHa?w=185&h=185&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3?text=对乙酰氨基酚" alt="对乙酰氨基酚" class="drug-img" />
+        <div class="drug-name">对乙酰氨基酚片</div>
+        <div class="drug-desc">解热镇痛药，常用于感冒引起的发热。</div>
+      </div>
+      <div class="drug-item">
+        <img src="https://th.bing.com/th/id/OIP.sgG2l9rMgTxdjww8TNK-mAHaHa?w=203&h=203&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3?text=硝苯地平" alt="硝苯地平" class="drug-img" />
+        <div class="drug-name">硝苯地平控释片</div>
+        <div class="drug-desc">钙通道阻滞剂，用于高血压和心绞痛。</div>
+      </div>
+      <div class="drug-item">
+        <img src="https://th.bing.com/th/id/OIP.c8APbO1LLSteoj84unDoSQAAAA?w=200&h=200&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3?text=二甲双胍" alt="二甲双胍" class="drug-img" />
+        <div class="drug-name">盐酸二甲双胍片</div>
+        <div class="drug-desc">口服降糖药，用于2型糖尿病治疗。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="results-container" id="results-container">
+    <div class="results-header">
+      <h3>药品比较结果</h3>
+      <span class="results-count" id="results-count">正在比较...</span>
+    </div>
+    <div class="comparison-table-container">
+      <table class="comparison-table" id="comparisonTable">
+        <thead>
+          <tr>
+            <th>属性</th>
+            
+          </tr>
+        </thead>
+        <tbody id="comparisonTableBody">
+          
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+
+    document.addEventListener('DOMContentLoaded', function() {
+
+      document.getElementById('compareBtn').addEventListener('click', performCompare);
+
+      document.getElementById('addDrugBtn').addEventListener('click', addDrugInput);
+
+      document.querySelectorAll('.remove-btn:not([disabled])').forEach(attachRemoveListener);
+    });
+
+    function addDrugInput() {
+      if (document.querySelectorAll('.drug-input').length >= 4) {
+        alert("最多支持对比 4 种药品");
+        return;
+      }
+      const inputsContainer = document.getElementById('compare-box-container');
+      const currentCount = document.querySelectorAll('.input-row').length;
+      const newRowId = `input-row-${currentCount + 1}`;
+
+      const row = document.createElement('div');
+      row.className = 'input-row';
+      row.id = newRowId;
+      row.innerHTML = `
+        <input type="text" class="drug-input"/>
+        <button class="remove-btn">−</button>
+      `;
+      inputsContainer.insertBefore(row, document.querySelector('.button-row'));
+      attachRemoveListener(row.querySelector('.remove-btn'));
+    }
+
+    function attachRemoveListener(btn) {
+      btn.addEventListener('click', () => {
+        if (document.querySelectorAll('.drug-input').length <= 2) {
+          alert("至少需要保留 2 个药品进行对比");
+          return;
+        }
+        btn.parentElement.remove();
+      });
+    }
+
+    function performCompare() {
+      const inputs = document.querySelectorAll('.drug-input');
+      const names = Array.from(inputs).map(input => input.value.trim()).filter(v => v);
+
+      if (names.length < 2) {
+        alert("请至少输入 2 个药品名称");
+        return;
+      }
+      if (names.length > 4) {
+        alert("最多支持 4 个药品");
+        return;
+      }
+
+      const compareHero = document.getElementById('compare-hero');
+      const compareH1 = document.getElementById('compare-h1');
+      const compareInstruction = document.getElementById('compare-instruction');
+      const compareBoxContainer = document.getElementById('compare-box-container');
+      const drugInputs = document.querySelectorAll('.drug-input');
+      const removeBtns = document.querySelectorAll('.remove-btn');
+      const addBtn = document.getElementById('addDrugBtn');
+      const compareBtn = document.getElementById('compareBtn');
+      const drugContainer = document.getElementById('drug-container');
+      const resultsContainer = document.getElementById('results-container');
+      const buttonRow = document.querySelector('.button-row');
+
+      drugContainer.style.display = 'none';
+
+      compareHero.classList.add('shrink');
+      compareH1.classList.add('shrink');
+      compareInstruction.classList.add('hidden');
+      compareBoxContainer.classList.add('shrink');
+      drugInputs.forEach(input => input.classList.add('shrink'));
+      removeBtns.forEach(btn => btn.classList.add('shrink'));
+      addBtn.classList.add('shrink');
+      compareBtn.classList.add('shrink');
+      buttonRow.classList.add('shrink');
+
+      setTimeout(() => {
+          resultsContainer.style.display = 'block';
+
+          document.getElementById('results-count').textContent = `正在比较 ${names.length} 种药品...`;
+
+      }, 500);
+
+      fetch('/api/compare', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ drugs: names })
+      })
+      .then(response => response.json())
+      .then(data => {
+        generateComparisonTable(data);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    }
+
+    function generateComparisonTable(data) {
+        const tableBody = document.getElementById('comparisonTableBody');
+        const tableHead = document.getElementById('comparisonTable').querySelector('thead tr');
+        tableBody.innerHTML = '';
+
+        tableHead.innerHTML = '<th>属性</th>';
+        data.forEach(item => {
+            const th = document.createElement('th');
+            th.textContent = item["tymc"];
+            tableHead.appendChild(th);
+        });
+        attrli=['spmc', 'ywmc', 'hypy', 'zdj', 'cfy', 'cf', 'xz', 'syz', 'yfyl', 'blfy', 'jj', 'zysx', 'tsrqyy', 'ywxhzy', 'ylzy', 'zc', 'gg', 'bzgg', 'yxq']
+        attrnameli=["商品名称", "英文名称", "汉语拼音", "指导价", "处方药", "成分", "性状", "适应症", "用法用量", "不良反应", "禁忌", "注意事项", "特殊人群用药", "药物相互作用", "药理作用", "贮藏", "规格", "包装规格", "有效期"]
+        attrli.forEach((attr,index)=>{
+            const row = document.createElement('tr');
+            const attrCell = document.createElement('td');
+            attrCell.className = 'attr-name';
+            attrCell.textContent = attrnameli[index];
+            row.appendChild(attrCell);
+            data.forEach(item => {
+                const cell = document.createElement('td');
+                cell.textContent = item[attr];
+                row.appendChild(cell);
+            });
+            tableBody.appendChild(row);
+        });
+
+        document.getElementById('results-count').textContent = `已比较 ${data.length} 种药品`;
+    }
+
+  </script>
+
+</body>
+</html>
+

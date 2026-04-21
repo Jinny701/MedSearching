@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>药品说明书智能检索系统</title>
+  <script src="static/js/d3.v7.min.js"></script>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #f5f7fa;
+      color: #333;
+      line-height: 1.6;
+      height: 100vh;
+      display: flex;
+      flex-direction: column; 
+      overflow: hidden; 
+    }
+
+    .navbar {
+      background-color: #003399;
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky; 
+      top: 0;
+      z-index: 100; 
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.2rem;
+    }
+
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 1rem;
+    }
+
+    .nav-links a:hover {
+      text-decoration: underline;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .main-content {
+      flex: 1; 
+      overflow-y: auto; 
+    }
+
+    .welcome-screen {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: calc(100vh - 80px); 
+      text-align: center;
+      padding: 1rem;
+      background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 1)),
+                  url("static/image/a1.jpg") center/cover;
+    }
+
+    .welcome-screen h1 {
+      color: #003399;
+      margin-bottom: 1rem;
+      font-size: 2.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .welcome-screen p {
+      max-width: 700px;
+      color: #555;
+      margin-bottom: 1rem; 
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+
+    .welcome-input-container {
+      background: #fffffa;
+      width: 100%;
+      max-width: 700px; 
+      margin-top: 1rem; 
+      display: flex;
+      flex-direction: column;
+      align-items: center; 
+      padding-bottom: 0.5rem; 
+      border: 1px solid #ccc;
+      border-radius: 15px; 
+      transition: border-color 0.15s ease, box-shadow 0.15s ease; 
+    }
+
+    .welcome-input-container.focused {
+      border-color: #003399;
+      box-shadow: 0 0 0 0.2rem rgba(0, 51, 153, 0.25);
+      outline: none;
+    }
+
+    .welcome-textarea-wrapper {
+      width: 100%;
+      padding: 0.8rem 1rem; 
+      box-sizing: border-box;
+    }
+
+    .welcome-textarea {
+      background: none;
+      border: none;
+      padding: 0; 
+      outline: none;
+      font-size: 1rem;
+      width: 100%;
+      resize: none; 
+      min-height: 34px; 
+      max-height: 150px; 
+      line-height: 1.7;
+      overflow-y: auto; 
+      
+    }
+
+    .input-footer {
+      display: flex;
+      justify-content: space-between; 
+      align-items: center;
+      gap: 0.5rem; 
+      margin-top: 0.1rem; 
+      width: 100%; 
+      padding: 0 1rem; 
+      box-sizing: border-box;
+    }
+
+    .suggestion-container {
+      display: flex;
+      flex-direction: row;
+      gap: 0.7rem; 
+      flex: 1; 
+      overflow-x: auto; 
+      padding-bottom: 0.2rem; 
+    }
+    .suggestion-item1 {
+      color: #495057; 
+      padding: 0.3rem 0rem; 
+      text-align: center;
+      font-size: 0.875rem; 
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s ease; 
+      white-space: nowrap; 
+      overflow: hidden;
+      text-overflow: ellipsis; 
+      flex-shrink: 0; 
+    }
+    
+    .suggestion-item {
+      color: #495057; 
+      padding: 0.3rem 0.4rem; 
+      border-radius: 20px; 
+      text-align: center;
+      font-size: 0.875rem; 
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s ease; 
+      border: 1px solid #ced4da; 
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+      white-space: nowrap; 
+      overflow: hidden;
+      text-overflow: ellipsis; 
+      flex-shrink: 0; 
+    }
+
+    .suggestion-item:hover {
+      background-color: #d1d5db; 
+      transform: translateY(-1px); 
+    }
+
+    .suggestion-item:active {
+      transform: translateY(0); 
+    }
+
+    .start-chat-btn {
+      width: 40px; 
+      height: 40px; 
+      padding: 0; 
+      background-color: #003399;
+      color: white;
+      border: none;
+      border-radius: 50%; 
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: background 0.3s, transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .start-chat-btn:hover {
+      background-color: #002166;
+      transform: scale(1.05); 
+    }
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .quote-section {
+      background-color: white;
+      padding: 40px;
+      border-radius: 8px;
+      margin: 40px 0;
+      position: relative;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    .quote-section h3{
+      margin-bottom: 2rem;
+      font-size: 1.5rem;
+    }
+    .quote-section::before,
+    .quote-section::after {
+      content: "";
+      position: absolute;
+      font-size: 4rem;
+      color: #007acc;
+      font-family: serif;
+    }
+
+    .quote-section::before {
+      top: 67px;
+      left: 70px;
+      content: "“";
+    }
+
+    .quote-section::after {
+      bottom: -9px;
+      right: 70px;
+      content: "”";
+    }
+
+    .quote-text {
+      margin: 20px;
+      text-align: left;
+      font-family: 'Times New Roman', 'Microsoft YaHei', serif;
+      font-size: 1rem;
+      font-weight: normal;
+      line-height: 1.8;
+      border: 2px dashed #b2d5ec;
+      padding: 50px 50px;
+      border-radius: 20px;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 1.5rem;
+      margin-bottom: 40px;
+      color: #333;
+    }
+
+    .feature-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 20px 0;
+      padding: 40px 20px;
+      gap: 30px;
+    }
+
+    .feature-text {
+      flex: 1;
+      font-family: 'Times New Roman', 'Microsoft YaHei', serif;
+      padding: 20px;
+    }
+    .feature-text b{
+      font-size: 1.1rem;
+    }
+
+    .feature-img {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+    }
+
+    .feature-img img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+
+    .feature-section:nth-child(odd) {
+      background-color: #f5f5f5;
+    }
+
+    .feature-section:nth-child(even) {
+      background-color: white;
+    }
+    
+    .footer {
+      background: linear-gradient(135deg, #003399, #002266); 
+      color: white;
+      padding: 40px 0 20px 0; 
+      margin-top: 60px; 
+    }
+
+    .footer-container {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 40px; 
+      max-width: 1200px; 
+      margin: 0 auto; 
+      padding: 0 20px; 
+    }
+
+    .footer-col {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .footer-col h3 {
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+      position: relative;
+      padding-bottom: 0.5rem; 
+    }
+
+    .footer-col h3::after { 
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 50px;
+        height: 2px;
+        background: #57cc99; 
+        border-radius: 1px;
+    }
+
+    .footer-col ul {
+      list-style: none;
+    }
+
+    .footer-col ul li {
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+    }
+
+    .footer-bottom {
+      margin-top: 3px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #ccc; 
+      border-top: 1px solid rgba(255, 255, 255, 0.1); 
+      padding-top: 5px; 
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .footer-logo img {
+      height: 30px;
+      margin-right: 10px;
+    }
+
+    .footer-link {
+        color: rgba(255, 255, 255, 0.7); 
+        text-decoration: none;
+        display: block;
+        margin-bottom: 0.75rem;
+        transition: var(--transition-fast, 0.15s ease); 
+    }
+
+    .footer-link:hover {
+        color: white; 
+        text-decoration: underline; 
+    }
+
+    .chat-interface {
+      display: none; 
+      flex-direction: column;
+      height: 100%;
+      gap: 1rem;
+    }
+
+    .chat-interface.active {
+      display: flex;
+    }
+
+    .conversation {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-height: 76vh;
+    }
+
+    .message {
+      max-width: 80%;
+      padding: 0.8rem 1rem;
+      border-radius: 18px;
+      margin-bottom: 0.5rem;
+      word-wrap: break-word;
+      animation: fadeInUp 0.3s ease-out;
+      white-space: pre-wrap; 
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .user-message {
+      align-self: flex-end;
+      background-color: #003399;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .bot-message {
+      align-self: flex-start;
+      background-color: #e9ecef;
+      color: #333;
+      border-bottom-left-radius: 4px;
+    }
+
+    .input-area {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .input-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 0.5rem;
+      position: relative;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 0.8rem 1rem;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      outline: none;
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+
+    .chat-input:focus {
+      border-color: #003399;
+      box-shadow: 0 0 0 0.2rem rgba(0, 51, 153, 0.25);
+    }
+
+    .send-btn {
+      width: 40px;
+      height: 40px;
+      background-color: #003399;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s;
+      padding: 0;
+    }
+
+    .send-btn:hover {
+      background-color: #002166;
+    }
+    .loader {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+            display: none;
+    }
+
+    @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+    #options {
+        margin-bottom: 10px;
+        margin-top: 10px;
+        display: none;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .chosen-btn {
+        background: #f0f4ff;
+        color: #3b82f6;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: none;
+    }
+    .symptom-btn {
+        color: #495057; 
+      padding: 0.3rem 0.4rem; 
+      border-radius: 20px; 
+      text-align: center;
+      font-size: 0.875rem; 
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s ease; 
+      border: 1px solid #ced4da; 
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+      white-space: nowrap; 
+      overflow: hidden;
+      text-overflow: ellipsis; 
+      flex-shrink: 0; 
+    }
+    .symptom-btn:hover {
+        background-color: #d1d5db; 
+        transform: translateY(-1px); 
+    }
+    .symptom-btn:active {
+        transform: translateY(0); 
+    }
+    
+    .right-panel {
+      width: 0;
+      opacity: 0;
+      transition: width 0.5s ease, opacity 0.5s ease;
+      overflow: hidden;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding: 1rem;
+      max-height: 89vh;
+    }
+
+    .right-panel.active {
+      width: 900px; 
+      opacity: 1;
+    }
+
+    #knowledge-graph {
+      flex: 1;
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6c757d;
+      min-height: 350px; 
+      overflow: hidden; 
+    }
+
+    .drug-list {
+      flex: 0 0 auto; 
+    }
+
+    .drug-list h3 {
+      margin-top: 0;
+      color: #003399;
+      font-size: 1.1rem;
+    }
+
+    .drug-grid {
+      height: 100px;
+      display: grid;
+      grid-template-columns: 1fr 1fr; 
+      gap: 0.5rem;
+      overflow-y: scroll;
+
+    }
+
+    .drug-item {
+      height: fit-content;
+      background-color: #e9ecef;
+      padding: 0.5rem;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .drug-item:hover {
+      background-color: #d1d5db;
+    }
+
+    .chat-and-panel {
+      display: flex;
+      gap: 1rem;
+      height: 100%;
+    }
+
+    .chat-container {
+      flex: 1;
+    }
+
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo">
+      <i class="fas fa-capsules"></i>
+      药品说明书智能检索系统
+    </div>
+    <div class="nav-links">
+      <a href="/"><i class="fas fa-robot"></i> 智能检索</a>
+      <a href="/search"><i class="fas fa-search"></i> 药品查询</a>
+      <a href="/compare"><i class="fas fa-scale-balanced"></i> 药品比较</a>
+      <a href="/knowledgegraph"><i class="fas fa-project-diagram"></i> 知识图谱</a>
+      <a href="/manual"><i class="fas fa-book"></i> 用户手册</a>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    
+    <section class="welcome-screen">
+      <h1> <i class="fas fa-robot"></i> 欢迎使用药品AI助手</h1>
+      <p>
+        与AI助手对话，获取药品信息、查询、比较、推荐等服务。<br>
+        我可以理解您的症状描述，为您推荐合适的药品。
+      </p>
+
+      <div class="welcome-input-container" id="welcome-input-container">
+        
+        <div class="welcome-textarea-wrapper">
+          <textarea
+            id="welcome-input"
+            class="welcome-textarea"
+            placeholder="输入您的第一个问题，例如：治疗感冒的药有哪些？"
+            autocomplete="off"
+          ></textarea>
+        </div>
+        
+        <div class="input-footer">
+          <div class="suggestion-container">
+            <div class="suggestion-item1" data-question="试试输入：">试试输入：</div>
+            <div class="suggestion-item" data-question="布洛芬有什么禁忌？">布洛芬有什么禁忌？</div>
+            <div class="suggestion-item" data-question="感冒灵和感冒清热颗粒哪个好用？">感冒灵和感冒清热颗粒哪个好用？</div>
+            <div class="suggestion-item" data-question="头痛能吃什么药？">头痛能吃什么药？</div>
+          </div>
+          <button id="start-chat-btn" class="start-chat-btn" type="button">
+            <i class="fas fa-paper-plane"></i> 
+          </button>
+        </div>
+      </div>
+    </section>
+    <main class="main-content" id="info-main-content">
+      <div class="container">
+        
+        <div class="quote-section">
+            <h3>药品说明书智能检索系统能提供什么？</h3>
+          <p class="quote-text">
+            <b>药品说明书智能检索系统是融合知识图谱与LLM-RAG技术构建的智能药品说明书检索平台，为公众提供精准、专业的药品信息服务。</b><br><br>
+            平台整合了海量权威药品说明书数据，打造结构化药品知识库与可视化知识图谱，支持药品查询、药品比较、智能检索等核心需求。你可以通过自然语言输入药品名称、症状描述或用药疑问，借助智能检索引擎快速获取适应症、用法用量、不良反应、药物相互作用等关键信息；也能通过交互式问答功能，让系统精准捕捉你的个性化需求（如特殊人群用药、剂型偏好等），生成定制化用药参考。<br><br>
+            我们持续优化模型性能、更新药品数据、升级交互体验，致力于打破药品信息壁垒，降低用药风险，让科学用药知识触手可及。欢迎常回来探索更多功能！
+          </p>
+        </div>
+
+        <div class="feature-section">
+          <div class="feature-text">
+            <h2 class="section-title">智能检索</h2>
+            <b>智能检索是融合知识图谱与LLM-RAG技术的药品说明书检索系统，整合权威药品数据构建结构化知识库。</b><br><br>
+            <p>支持药品查询、比较、症状匹配推荐，用户通过自然语言输入需求，系统可快速返回适应症、用法用量等关键信息，结合交互式问答捕捉个性化需求，提供可视化知识图谱与精准用药参考，助力科学用药。</p>
+          </div>
+          <div class="feature-img">
+            <img src="static/image/智能检索.png" alt="智能检索" />
+          </div>
+        </div>
+
+        <div class="feature-section">
+          <div class="feature-img">
+            <img src="static/image/药品查询.png" alt="药品查询" />
+          </div>
+          <div class="feature-text">
+            <h2 class="section-title">药品查询</h2>
+            <b>药品查询是智能检索系统的核心功能，依托结构化药品知识库与实体识别技术。</b><br><br>
+            <p>用户输入药品名称（含别名），系统快速匹配权威说明书数据，精准返回适应症、用法用量、不良反应、禁忌、药物相互作用等关键信息，支持查看完整说明书，为用药决策提供专业参考。</p>
+          </div>
+        </div>
+
+        <div class="feature-section">
+          <div class="feature-text">
+            <h2 class="section-title">药品比较</h2>
+            <b>药品比较是智能检索系统的核心功能，基于权威药品知识库与多维度对比框架。</b><br><br>
+            <p>用户输入需比较的药品名称或相关需求，系统自动识别目标药品，从疗效、安全性、价格、剂型等维度提取关键信息，生成结构化对比报告，清晰呈现各药品优劣与适用场景，助力精准选药。</p>
+          </div>
+          <div class="feature-img">
+            <img src="static/image/药品比较.png" alt="药品比较" />
+          </div>
+        </div>
+
+        <div class="feature-section">
+          <div class="feature-img">
+            <img src="static/image/知识图谱.png" alt="知识图谱" />
+          </div>
+          <div class="feature-text">
+            <h2 class="section-title">知识图谱</h2>
+            <b>知识图谱是智能检索系统的核心技术支撑，基于权威药品说明书数据构建。</b><br><br>
+            <p>涵盖药品、适应症、成分、剂型、特殊人群等多维度实体及关联关系，检索后以可视化形式呈现，支持节点悬浮查看详情、点击展开关联实体，直观展现药品间潜在关联，助力深化理解用药逻辑。</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer" id="info-footer">
+      <div class="container footer-container">
+        <div class="footer-col">
+          <div class="footer-logo">
+            药品说明书智能检索系统
+          </div>
+          <p class="text-white-50">融合知识图谱与LLM-RAG技术，为公众提供精准、专业的药品信息服务。</p>
+        </div>
+        <div class="footer-col">
+          <h3>功能导航</h3>
+          <a href="/" class="footer-link">首页</a>
+          <a href="/knowledgegraph" class="footer-link">知识图谱</a>
+          <a href="#info-main-content" class="footer-link">平台功能</a>
+        </div>
+        <div class="footer-col">
+          <h3>数据服务</h3>
+          <a href="/search" class="footer-link">药品查询</a>
+          <a href="/compare" class="footer-link">药品比较</a>
+          <a href="/manual" class="footer-link">用户手册</a>
+        </div>
+        <div class="footer-col">
+          <h3>联系我们</h3>
+          <p class="text-white-50 mb-2"><i class="fas fa-map-marker-alt me-2"></i>北京市朝阳区北三环东路11号</p>
+          <p class="text-white-50 mb-2"><i class="fas fa-phone me-2"></i>010 6428 6719</p>
+          <p class="text-white-50 mb-3"><i class="fas fa-envelope me-2"></i>20210423022@bucm.edu.cn</p>
+          <button class="btn btn-outline-light btn-sm" onclick="window.location.href='mailto:20210423022@bucm.edu.cn'"><i class="fas fa-paper-plane me-2"></i>发送邮件</button>
+        </div>
+      </div>
+      <hr class="my-4" style="border-color: rgba(255, 255, 255, 0.1);">
+      <div class="footer-bottom">
+        <div class="container">
+          <div class="row justify-content-center">
+            <div class="col-auto text-center">
+              <p class="text-white-50 small mb-0">&copy; 2026 北京中医药大学 人工智能与大数据教研室 保留所有权利.</p>
+            </div>
+            <div class="col-auto text-center">
+              <p class="text-white-50 small mb-0">数据来源：国家药品监督管理局 | 仅供学术研究使用</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+    
+    <div class="chat-interface" id="chat-interface">
+      <div class="chat-and-panel"> 
+        <div class="chat-container">
+          <div class="conversation" id="conversation">
+            <div class="message bot-message">您好！我是药品说明书智能检索助手。您可以问我任何关于药品的问题，比如“治疗感冒的药有哪些？”或“阿司匹林的副作用是什么？”</div>
+          </div>
+          <div class="input-area">
+            <div class="input-container" id="input-container">
+              <input
+                type="text"
+                id="chat-input"
+                class="chat-input"
+                placeholder="输入您的问题..."
+                autocomplete="off"
+              />
+              <button id="send-btn" class="send-btn" type="button">
+                <div class="loader" id="loader"></div>
+                <i id="send-icon" class="fas fa-chevron-up"></i>
+
+              </button>
+              <div  id="options"></div>
+            </div>
+
+          </div>
+        </div>
+        <div class="right-panel" id="right-panel">
+          <div id="knowledge-graph">
+            <p id="knowledge-graph-message">知识图谱将在此显示</p>
+          </div>
+          <div class="drug-list">
+            <h3>相关药品</h3>
+            <div class="drug-grid" id="drug-list">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const welcomeScreen = document.querySelector('.welcome-screen');
+        const chatInterface = document.getElementById('chat-interface');
+        const startChatBtn = document.getElementById('start-chat-btn');
+        const rightPanel = document.getElementById('right-panel');
+        const sendBtn = document.getElementById('send-btn');
+        const chatInput = document.getElementById('chat-input');
+        const conversation = document.getElementById('conversation');
+
+        const welcomeInput = document.getElementById('welcome-input');
+        const welcomeInputContainer = document.getElementById('welcome-input-container');
+
+        const suggestionItems = document.querySelectorAll('.suggestion-item');
+        const infoMainContent=document.getElementById('info-main-content');
+        const infoFooter=document.getElementById('info-footer');
+
+        suggestionItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const question = this.getAttribute('data-question');
+
+                welcomeInput.value = question;
+                adjustTextareaHeight(welcomeInput);
+
+                welcomeInput.focus();
+            });
+        });
+
+        function adjustTextareaHeight(textarea) {
+
+            textarea.style.height = 'auto';
+
+            const calculatedHeight = Math.min(
+                textarea.scrollHeight,
+                parseInt(getComputedStyle(textarea).maxHeight)
+            );
+            textarea.style.height = calculatedHeight + 'px';
+        }
+
+        welcomeInput.addEventListener('input', function() {
+            adjustTextareaHeight(this);
+        });
+
+        welcomeInput.addEventListener('focus', function() {
+            welcomeInputContainer.classList.add('focused');
+        });
+
+        welcomeInput.addEventListener('blur', function() {
+
+             welcomeInputContainer.classList.remove('focused');
+        });
+
+        startChatBtn.addEventListener('click', function() {
+            const initialMessage = welcomeInput.value.trim();
+
+            if (initialMessage) {
+
+                setTimeout(() => {
+                    sendMessage();
+                }, 500);
+            }
+
+            welcomeScreen.style.display = 'none';
+            infoMainContent.style.display = 'none';
+            infoFooter.style.display = 'none';
+            chatInterface.classList.add('active');
+
+            setTimeout(() => {
+                rightPanel.classList.add('active');
+            }, 300);
+
+            chatInput.focus();
+        });
+
+        function sendMessage() {
+
+            const input = chatInput.value.trim() || welcomeInput.value.trim();
+            const chatinput=document.getElementById('chat-input');
+            const loader = document.getElementById('loader');
+            const options = document.getElementById('options');
+            const sendicon=document.getElementById('send-icon');
+            const druglist=document.getElementById('drug-list');
+            const kgm=document.getElementById('knowledge-graph-message');
+            d3.select("#knowledge-graph svg").remove();
+            const drugitem=document.getElementsByClassName('drug-item');
+            for(i = drugitem.length - 1; i >= 0; i--){
+                if (drugitem[i] != null)
+                    drugitem[i].parentNode.removeChild(drugitem[i]);
+            }
+            const chosen=document.getElementsByClassName('chosen-btn');
+            for(i = chosen.length - 1; i >= 0; i--){
+                if (chosen[i] != null)
+                    chosen[i].parentNode.removeChild(chosen[i]);
+            }
+            loader.style.display = 'block';
+            options.style.display = 'none';
+            sendicon.style.display= 'none';
+
+            if (input) {
+
+                addMessageToChat(input, 'user');
+
+                chatInput.value = '';
+                welcomeInput.value = '';
+                adjustTextareaHeight(welcomeInput);
+
+                setTimeout(() => {
+                    fetch('/process', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: input })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        loader.style.display = 'none';
+                        sendicon.style.display= 'block'
+                        if (data.type === 'a'||data.type==='d'||data.type === 'prime') {
+                            addMessageToChat(data.result,"bot");
+                            options.style.display='none'
+                            chatinput.style.display='flex';
+                            sendBtn.style.display='flex';
+                            kgm.style.display='none';
+                            neo4jPrint(data.nodes, data.tempEdges);
+                            data.medlist.forEach(medname=>{
+                                const mdl = document.createElement('div');
+                                mdl.className= 'drug-item';
+                                mdl.setAttribute('id', medname);
+                                mdl.textContent = medname;
+                                mdl.onclick = () => medhtml(medname);
+                                druglist.appendChild(mdl);
+                            })
+                        } else if (data.type === 'b'||data.type === 'c') {
+                            addMessageToChat(data.message,"bot");
+                            data.factors.forEach(factor => {
+                                options.style.display='block'
+                                chatinput.style.display='none';
+                                sendBtn.style.display='none';
+                                const btn = document.createElement('button');
+                                btn.className = 'symptom-btn';
+                                btn.setAttribute('id', factor);
+                                btn.textContent = factor;
+                                btn.onclick = () => handleFactor(factor, data.original,data.type,data.detail,data.sym_li,data.mset,data.drugli);
+                                options.appendChild(btn);
+                            });
+                            options.style.display = 'flex';
+                        }
+                    });
+                }, 500);
+            }
+        }
+        function handleFactor(factor, original,type,detail,sym_li,mset,drugli) {
+            const chosen=document.getElementById(factor);
+            const chatinput=document.getElementById('chat-input');
+            const kgm=document.getElementById('knowledge-graph-message');
+            const sendBtn=document.getElementById('send-btn');
+            const loader = document.getElementById('loader');
+            const options = document.getElementById('options');
+            const sendicon=document.getElementById('send-icon');
+            const druglist=document.getElementById('drug-list');
+            loader.style.display = 'block';
+            sendicon.style.display= 'none';
+            chosen.className='chosen-btn';
+            options.style.display='none'
+            chatinput.style.display='flex';
+            sendBtn.style.display='flex';
+            addMessageToChat(factor,"user");
+            const unchosen=document.getElementsByClassName('symptom-btn');
+            for(i = unchosen.length - 1; i >= 0; i--){
+                if (unchosen[i] != null)
+                    unchosen[i].parentNode.removeChild(unchosen[i]);
+            }
+
+            fetch('/process', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ current_number: original, selected_factor: factor ,type:type,detail:detail,sym_li:sym_li,mset:mset,drugli:drugli})
+            })
+            .then(res => res.json())
+            .then(data => {
+                loader.style.display = 'none';
+                sendicon.style.display= 'block';
+                if (data.type === 'prime') {
+                    addMessageToChat(data.result,"bot");
+                    kgm.style.display='none';
+                    neo4jPrint(data.nodes, data.tempEdges);
+                    data.medlist.forEach(medname=>{
+                        const mdl = document.createElement('div');
+                        mdl.className= 'drug-item';
+                        mdl.setAttribute('id', medname);
+                        mdl.textContent = medname;
+                        mdl.onclick = () => medhtml(medname);
+                        druglist.appendChild(mdl);
+                    })
+                } else {
+                    addMessageToChat(data.message,"bot");
+                    options.style.display='block'
+                    chatinput.style.display='none';
+                    sendBtn.style.display='none';
+                    data.factors.forEach(f => {
+                        const btn = document.createElement('button');
+                        btn.className = 'symptom-btn';
+                        btn.setAttribute('id', f);
+                        btn.textContent = f;
+                        btn.onclick = () => handleFactor(f, data.current,data.type,data.detail,data.sym_li,data.mset,data.drugli);
+                        options.appendChild(btn);
+                    });
+                }
+            });
+        }
+        function medhtml(medname) {
+            window.location.href = `/med?medname=${medname}`;
+        }
+
+        function neo4jPrint(nodes, tempEdges) {
+            const width = document.getElementById('knowledge-graph').clientWidth;
+            const height = document.getElementById('knowledge-graph').clientHeight;
+
+            d3.select("#knowledge-graph").select("svg").remove();
+
+            const svg = d3.select("#knowledge-graph")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+            const g = svg.append("g");
+
+            svg.append("defs").selectAll("marker")
+                .data(["end"])
+                .enter().append("marker")
+                .attr("id", d => d)
+                .attr("viewBox", "0 -5 10 10")
+                .attr("refX", 25)
+                .attr("refY", 0)
+                .attr("markerWidth", 6)
+                .attr("markerHeight", 6)
+                .attr("orient", "auto")
+                .append("path")
+                .attr("d", "M0,-5L10,0L0,5")
+                .attr("fill", "#94a3b8");
+
+            const simulation = d3.forceSimulation(nodes)
+                .force("charge", d3.forceManyBody().strength(-300))
+                .force("link", d3.forceLink(tempEdges).id(d => d.id).distance(100))
+                .force("center", d3.forceCenter(width / 2, height / 2))
+                .force("collision", d3.forceCollide().radius(d => d.type === 'm' ? 30 : 35));
+
+            const links = g.append("g")
+                .selectAll("line")
+                .data(tempEdges)
+                .enter().append("line")
+                .attr("stroke", "#94a3b8")
+                .attr("stroke-width", 2)
+                .attr("marker-end", "url(#end)");
+
+            const linkText = g.append("g")
+                .selectAll("text")
+                .data(tempEdges)
+                .enter().append("text")
+                .attr("font-size", 10)
+                .attr("fill", "#64748b")
+                .text(d => d.relation || "");
+
+            const nodeGroups = g.append("g")
+                .selectAll("g")
+                .data(nodes)
+                .enter().append("g")
+                .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended));
+
+            nodeGroups.append("circle")
+                .attr("r", d => d.type === 'm' ? 27 : 30)
+                .attr("fill", d => d.type === 'm' ? '#ECB5C9' : '#4C8EDA')
+                .attr("stroke", d => d.type === 'm' ? '#DA7298' : '#2870C2')
+                .attr("stroke-width", 2)
+                .attr("cursor", "move");
+
+            nodeGroups.append("text")
+                .text(d => d.name)
+                .attr("text-anchor", "middle")
+                .attr("dy", d => 12 - (Math.ceil(d.name.length / 4) * 12) / 2)
+                .attr("fill", "white")
+                .style("font-size", "12px")
+                .style("pointer-events", "none")
+                .call(wrapText, 50);
+
+            const zoom = d3.zoom()
+                .scaleExtent([0.1, 5])
+                .on("zoom", (event) => {
+                    g.attr("transform", event.transform);
+                });
+
+            svg.call(zoom);
+
+            simulation.on("tick", () => {
+                links
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                linkText
+                    .attr("x", d => (d.source.x + d.target.x) / 2)
+                    .attr("y", d => (d.source.y + d.target.y) / 2);
+
+                nodeGroups
+                    .attr("transform", d => `translate(${d.x},${d.y})`);
+            });
+
+            function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+
+            function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+
+            }
+        }
+
+        function wrapText(text, width) {
+            text.each(function() {
+                const element = d3.select(this);
+                const originalText = element.text();
+                const fontSize = parseFloat(element.style("font-size")) || 12;
+                const lineHeight = fontSize * 1.2;
+                const padding = 2;
+                const MAX_LINES = 3;
+
+                element.text(null);
+
+                const wrapper = element.append("tspan")
+                    .attr("x", 0)
+                    .style("alignment-baseline", "hanging");
+
+                function measureText(textContent) {
+                    const temp = wrapper.append("tspan")
+                        .text(textContent)
+                        .style("visibility", "hidden");
+                    const width = temp.node().getComputedTextLength();
+                    temp.remove();
+                    return width;
+                }
+
+                const characters = originalText.split("");
+                let line = [];
+                let currentLineWidth = 0;
+                let lineCount = 0;
+                let lines = [];
+
+                for (let i = 0; i < characters.length; i++) {
+                    const char = characters[i];
+
+                    if (lineCount >= MAX_LINES) break;
+
+                    const charWidth = measureText(char);
+
+                    if (currentLineWidth + charWidth > width - padding) {
+
+                        lines.push(line.join(""));
+                        lineCount++;
+
+                        if (lineCount >= MAX_LINES) {
+                            let lastLine = lines[MAX_LINES - 1];
+
+                            while (lastLine.length > 0 && measureText(lastLine + "...") > width - padding) {
+                                lastLine = lastLine.slice(0, -1);
+                            }
+                            lines[MAX_LINES - 1] = lastLine + "...";
+                            break;
+                        }
+
+                        line = [char];
+                        currentLineWidth = charWidth;
+                    } else {
+
+                        line.push(char);
+                        currentLineWidth += charWidth;
+                    }
+
+                    if (i === characters.length - 1 && lineCount < MAX_LINES) {
+                        lines.push(line.join(""));
+                        lineCount++;
+                    }
+                }
+
+                const totalHeight = lineHeight * lineCount;
+                const startDy = -(totalHeight / 2) + 6*lineHeight/7;
+
+                lines.slice(0, MAX_LINES).forEach((lineText, i) => {
+                    wrapper.append("tspan")
+                        .attr("x", 0)
+                        .attr("dy", i === 0 ? `${startDy}px` : lineHeight)
+                        .text(lineText);
+                });
+            });
+        }
+
+        function addMessageToChat(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
+
+            messageDiv.innerHTML = text.replace(/\n/g, '<br>');
+            conversation.appendChild(messageDiv);
+
+            conversation.scrollTop = conversation.scrollHeight;
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        welcomeInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                startChatBtn.click();
+            }
+        });
+
+        adjustTextareaHeight(welcomeInput);
+    });
+  </script>
+
+</body>
+</html>

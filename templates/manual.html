@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>药品说明书智能检索系统 - 用户手册</title>
+  <script src="static/js/d3.v7.min.js"></script>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #f5f7fa;
+      color: #333;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    .navbar {
+      background-color: #003399;
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.2rem;
+    }
+
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 1rem;
+    }
+
+    .nav-links a:hover {
+      text-decoration: underline;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .main-content {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+    }
+
+    .manual-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 2px solid #003399;
+    }
+
+    .manual-header h1 {
+      color: #003399;
+      font-size: 2.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .manual-header .subtitle {
+      color: #666;
+      font-size: 1.1rem;
+    }
+
+    .manual-header .meta {
+      margin-top: 0.5rem;
+      color: #777;
+      font-size: 0.95rem;
+    }
+
+    .toc-container {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .toc-title {
+      color: #003399;
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .toc-list {
+      list-style: none;
+      padding-left: 1rem;
+    }
+
+    .toc-list li {
+      margin-bottom: 0.4rem;
+      padding-left: 0.5rem;
+      border-left: 2px solid #e0e5f0;
+      transition: all 0.2s;
+    }
+
+    .toc-list li:hover {
+      border-left: 2px solid #003399;
+      background: #f5f8ff;
+      padding-left: 0.8rem;
+    }
+
+    .toc-list a {
+      color: #333;
+      text-decoration: none;
+      display: block;
+      padding: 0.3rem 0;
+      transition: color 0.2s;
+    }
+
+    .toc-list a:hover {
+      color: #003399;
+      font-weight: 500;
+    }
+
+    .manual-section {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+      margin-bottom: 2rem;
+      overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .manual-section:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 20px rgba(0,0,0,0.12);
+    }
+
+    .section-header {
+      background: linear-gradient(135deg, #003399, #0044cc);
+      color: white;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .section-header h2 {
+      font-size: 1.4rem;
+      margin: 0;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .section-header i {
+      margin-right: 0.5rem;
+    }
+
+    .section-content {
+      padding: 1.5rem;
+      line-height: 1.7;
+    }
+
+    .section-content p {
+      margin-bottom: 1rem;
+    }
+
+    .section-content ul, .section-content ol {
+      margin-left: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .section-content li {
+      margin-bottom: 0.4rem;
+    }
+
+    .note-box {
+      background: #e3f2fd;
+      border-left: 4px solid #2196f3;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .note-title {
+      font-weight: bold;
+      color: #0d47a1;
+      margin-bottom: 0.3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .warning-box {
+      background: #fff8e1;
+      border-left: 4px solid #ffc107;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .warning-title {
+      font-weight: bold;
+      color: #5d4037;
+      margin-bottom: 0.3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .code-block {
+      background: #f8f9fa;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 1rem;
+      margin: 1rem 0;
+      font-family: monospace;
+      font-size: 0.95rem;
+      overflow-x: auto;
+    }
+
+    .command {
+      color: #0066cc;
+      font-weight: bold;
+    }
+
+    .manual-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.2rem 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .manual-table th {
+      background-color: #003399;
+      color: white;
+      padding: 0.8rem;
+      text-align: left;
+    }
+
+    .manual-table td {
+      padding: 0.7rem;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .manual-table tr:nth-child(even) {
+      background-color: #f9fbfd;
+    }
+
+    .manual-table tr:hover {
+      background-color: #edf3ff;
+    }
+
+    .figure-container {
+      margin: 1.5rem 0;
+      text-align: center;
+    }
+
+    .figure-img {
+      max-width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+      border: 1px solid #e0e5f0;
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      font-style: italic;
+    }
+
+    .figure-img img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+
+    .figure-caption {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: #666;
+      font-weight: 500;
+    }
+
+    .step-container {
+      counter-reset: step-counter;
+      margin: 1.5rem 0;
+    }
+
+    .step-item {
+      position: relative;
+      padding-left: 2.5rem;
+      margin-bottom: 1.2rem;
+      min-height: 2rem;
+    }
+
+    .step-item:before {
+      counter-increment: step-counter;
+      content: counter(step-counter);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 24px;
+      height: 24px;
+      background: #003399;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+
+    .footer {
+      background: linear-gradient(135deg, #003399, #002266);
+      color: white;
+      padding: 40px 0 20px 0;
+      margin-top: 60px;
+    }
+
+    .footer-container {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .footer-col {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .footer-col h3 {
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+      position: relative;
+      padding-bottom: 0.5rem;
+    }
+
+    .footer-col h3::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 50px;
+        height: 2px;
+        background: #57cc99;
+        border-radius: 1px;
+    }
+
+    .footer-col ul {
+      list-style: none;
+    }
+
+    .footer-col ul li {
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+    }
+
+    .footer-bottom {
+      margin-top: 3px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #ccc;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 5px;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .footer-logo img {
+      height: 30px;
+      margin-right: 10px;
+    }
+
+    .footer-link {
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+        display: block;
+        margin-bottom: 0.75rem;
+        transition: var(--transition-fast, 0.15s ease);
+    }
+
+    .footer-link:hover {
+        color: white;
+        text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .manual-section {
+        margin-left: 0;
+        margin-right: 0;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .toc-container {
+        display: none;
+      }
+
+      .footer-container {
+        flex-direction: column;
+      }
+    }
+
+    .feature-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .feature-card {
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+    }
+
+    .feature-card-header {
+      background: linear-gradient(135deg, #003399, #0044cc);
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .feature-card-body {
+      padding: 1.2rem;
+    }
+
+    .feature-card h3 {
+      margin-bottom: 0.8rem;
+      color: #003399;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .overview-intro {
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background: linear-gradient(135deg, #f8faff, #e6eeff);
+      border-radius: 10px;
+      border-left: 4px solid #003399;
+    }
+
+    .overview-intro p {
+      font-size: 1.1rem;
+      color: #444;
+      margin-bottom: 1rem;
+    }
+
+    .tech-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .tech-feature {
+      flex: 1;
+      min-width: 200px;
+      background: white;
+      padding: 1.2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border-top: 3px solid #003399;
+    }
+
+    .tech-feature i {
+      font-size: 1.8rem;
+      color: #003399;
+      margin-bottom: 0.8rem;
+    }
+
+    .tech-feature h4 {
+      color: #003399;
+      margin-bottom: 0.5rem;
+    }
+
+    .tech-feature p {
+      color: #666;
+      font-size: 0.95rem;
+    }
+
+    .section-content h3 {
+      font-size: 1.3rem; 
+      margin: 1.5rem 0 1rem;
+      color: #003399;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo">
+      <i class="fas fa-capsules"></i>
+      药品说明书智能检索系统
+    </div>
+    <div class="nav-links">
+      <a href="/"><i class="fas fa-robot"></i> 智能检索</a>
+      <a href="/search"><i class="fas fa-search"></i> 药品查询</a>
+      <a href="/compare"><i class="fas fa-scale-balanced"></i> 药品比较</a>
+      <a href="/knowledgegraph"><i class="fas fa-project-diagram"></i> 知识图谱</a>
+      <a href="/manual"><i class="fas fa-book"></i> 用户手册</a>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <div class="manual-header">
+      <h1><i class="fas fa-book-open"></i> 药品说明书智能检索系统使用手册</h1>
+      <div class="subtitle">权威、精准、智能的药品信息服务指南</div>
+      <div class="meta">版本：V1.0 &nbsp; | &nbsp; 更新日期：2026年1月4日 &nbsp; | &nbsp; 申请人：王若佳</div>
+    </div>
+
+    <div class="toc-container">
+      <div class="toc-title">
+        <i class="fas fa-list-alt"></i> 目录导航
+      </div>
+      <ul class="toc-list">
+        <li><a href="#section1">1. 总体功能描述</a></li>
+        <li><a href="#section2">2. 技术特点</a></li>
+        <li><a href="#section3">3. 运行环境</a></li>
+        <li><a href="#section4">4. 软件编译环境</a></li>
+        <li><a href="#section5">5. 系统安装说明</a></li>
+        <li><a href="#section6">6. 系统启动</a></li>
+        <li><a href="#section7">7. 系统具体功能及使用</a></li>
+      </ul>
+    </div>
+
+    <div class="manual-section" id="section1">
+      <div class="section-header">
+        <h2><i class="fas fa-tasks"></i> 1. 总体功能描述</h2>
+      </div>
+      <div class="section-content">
+        <div class="overview-intro">
+          <p>本系统融合知识图谱与LLM-RAG技术，通过分析用户药品查询、比较、推荐三类核心需求，构建药品多维度知识图谱，结合优化的检索策略与适配的大语言模型，以本地B/S架构实现精准、个性化的药品信息检索与智能问答，同时保障用药安全。</p>
+        </div>
+
+        <div class="tech-features">
+          <div class="tech-feature">
+            <i class="fas fa-robot"></i>
+            <h4>智能检索</h4>
+            <p>支持自然语言交互，精准回答药品信息，满足用户个性化用药咨询需求。</p>
+          </div>
+          <div class="tech-feature">
+            <i class="fas fa-search"></i>
+            <h4>药品查询</h4>
+            <p>支持通用名、商品名、成分等多维度检索，快速定位药品说明书。</p>
+          </div>
+          <div class="tech-feature">
+            <i class="fas fa-scale-balanced"></i>
+            <h4>药品比较</h4>
+            <p>多药品结构化对比，辅助用药决策，清晰呈现药物差异。</p>
+          </div>
+          <div class="tech-feature">
+            <i class="fas fa-project-diagram"></i>
+            <h4>知识图谱</h4>
+            <p>可视化展示药品关联信息，揭示药物与疾病、症状等复杂关系。</p>
+          </div>
+        </div>
+
+        <div class="figure-container">
+          <div class="figure-img">
+            <img src="static/image/图1.png" alt="系统架构图 - 图1 药品说明书智能检索系统架构设计" onerror="this.onerror=null; this.parentElement.textContent='[图片加载失败: static/image/图1.png]';">
+          </div>
+          <div class="figure-caption">图1：系统整体架构设计，展示四层技术架构</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="manual-section" id="section2">
+      <div class="section-header">
+        <h2><i class="fas fa-microchip"></i> 2. 技术特点</h2>
+      </div>
+      <div class="section-content">
+        <p>系统采用本地化B/S架构，深度融合大语言模型（LLM）、检索增强生成（RAG）与药品领域知识图谱，构建安全、高效、可解释的智能药品说明书检索平台。</p>
+
+        <h3><i class="fas fa-layer-group"></i> 2.1 交互层：响应式前端与知识图谱可视化</h3>
+        <p>交互层基于现代Web技术栈构建，采用Vue3作为核心框架，结合Element UI实现标准化、高可用的用户界面组件，提升操作流畅度与用户体验。通过HTML5、CSS3和JavaScript实现跨浏览器兼容与动态交互逻辑。为支持知识图谱的直观展示，引入D3.js进行图结构渲染，实现节点关系的动态布局、缩放、点击展开等交互功能；同时使用Jinja2模板引擎处理动态数据渲染，确保页面内容高效加载与更新。</p>
+
+        <h3><i class="fas fa-cloud"></i> 2.2 通信层：安全高效的HTTP/HTTPS协议传输</h3>
+        <p>通信层采用标准的HTTP/HTTPS协议，实现前后端之间的安全数据交换。所有请求均通过加密通道传输，保障用户查询内容与系统返回结果的隐私性与完整性。</p>
+
+        <h3><i class="fas fa-server"></i> 2.3 服务层：Python生态驱动的智能服务引擎</h3>
+        <p>服务层以Python 3.11为核心开发语言，基于Flask框架搭建轻量级Web服务，负责接收前端请求、调用后端逻辑模块并返回结构化响应。集成OpenAI API实现自然语言理解与生成能力，结合RAG流程完成上下文检索与答案生成。</p>
+
+        <h3><i class="fas fa-database"></i> 2.4 存储层：多源异构数据统一管理</h3>
+        <p>存储层采用多格式协同架构，以满足不同类型数据的存储需求。其中，Neo4j用于构建和维护药品知识图谱，支持实体（如药品、适应症、不良反应）及其复杂关系的高效存储与图遍历查询；Excel与JSON格式文件用于存储原始药品说明书文本、结构化字段数据及配置信息，便于数据导入和离线处理。</p>
+      </div>
+    </div>
+
+    <div class="manual-section" id="section3">
+      <div class="section-header">
+        <h2><i class="fas fa-cogs"></i> 3. 运行环境</h2>
+      </div>
+      <div class="section-content">
+        <p>本系统基于app.py后端和index.html等前端构建，需要配置相应的软件环境和硬件环境以确保正常运行。</p>
+
+        <h3><i class="fas fa-laptop-code"></i> 3.1 软件环境</h3>
+        <table class="manual-table">
+          <thead>
+            <tr>
+              <th>设备名称</th>
+              <th>软件环境</th>
+              <th>具体配置</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td rowspan="3">服务器端</td>
+              <td>操作系统</td>
+              <td>Windows 10/11，Linux(如Ubuntu 20.04 LTS)，macOS 12+</td>
+            </tr>
+            <tr>
+              <td>Python</td>
+              <td>Python 3.11或更高版本</td>
+            </tr>
+            <tr>
+              <td>数据库</td>
+              <td>Neo4j 4.0或更高版本</td>
+            </tr>
+            <tr>
+              <td rowspan="2">客户端</td>
+              <td>操作系统</td>
+              <td>Windows 10/11，Linux，macOS 12+</td>
+            </tr>
+            <tr>
+              <td>浏览器</td>
+              <td>Chrome 100.0+，Firefox 95.0+，Safari 15.0+，Edge 100.0+</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3><i class="fas fa-microchip"></i> 3.2 硬件环境</h3>
+        <table class="manual-table">
+          <thead>
+            <tr>
+              <th>设备名称</th>
+              <th>硬件设备</th>
+              <th>具体配置</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td rowspan="3">服务器端</td>
+              <td>CPU</td>
+              <td>推荐4核或以上，主频2.5GHz及以上(处理知识图谱查询和LLM-API调用)</td>
+            </tr>
+            <tr>
+              <td>内存</td>
+              <td>推荐16GB DDR4及以上(运行Neo4j图数据库和Python应用需要)</td>
+            </tr>
+            <tr>
+              <td>存储</td>
+              <td>推荐50GB可用空间(用于存放Python环境、Neo4j数据库文件、Excel/CSV/JSON数据文件等)</td>
+            </tr>
+            <tr>
+              <td>客户端</td>
+              <td>CPU/内存</td>
+              <td>CPU: 2核或以上，主频2.0GHz及以上；内存: 8GB DDR4及以上</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="manual-section" id="section4">
+      <div class="section-header">
+        <h2><i class="fas fa-code"></i> 4. 软件编译环境</h2>
+      </div>
+      <div class="section-content">
+        <h3><i class="fas fa-language"></i> 4.1 编程语言</h3>
+        <ul>
+            <ul>
+          <li><strong>后端：</strong> Python 3.11</li>
+          <li><strong>前端：</strong> HTML5, CSS3, JavaScript</li>
+          <li><strong>数据库查询：</strong> Cypher Query Language</li>
+            </ul>
+        </ul>
+
+        <h3><i class="fas fa-tag"></i> 4.2 版本要求</h3>
+        <ul>
+            <ul>
+              <li>Python：>=3.11</li>
+              <li>Neo4j：>=4.0（通过py2neo连接）</li>
+              <li>Flask：>=2.0（后端基于Flask框架）</li>
+              <li>Py2neo：>=2021.2.3（用于连接Neo4j）</li>
+              <li>Pandas：>=1.5.0（用于数据处理）</li>
+              <li>Scikit-learn：>=1.0.0（用于TF-IDF和余弦相似度计算）</li>
+              <li>Jieba：>=0.42.1（用于中文分词）</li>
+              <li>OpenAI SDK：>=1.0.0（用于调用LLM）</li>
+            </ul>
+        </ul>
+      </div>
+    </div>
+
+    <div class="manual-section" id="section5">
+      <div class="section-header">
+        <h2><i class="fas fa-download"></i> 5. 系统安装说明</h2>
+      </div>
+      <div class="section-content">
+        <div class="step-container">
+          <div class="step-item">
+            <strong>安装Python依赖</strong><br>
+            确保已安装Python3.11及pip。在项目根目录下（即app.py所在目录），执行以下命令安装所有依赖库：
+            <div class="code-block">
+              <span class="command">pip install flask openai numpy scikit-learn jieba pandas py2neo python-Levenshtein</span>
+            </div>
+          </div>
+
+          <div class="step-item">
+            <strong>安装并启动数据库</strong>
+            <ul>
+              <li>下载并安装Neo4j图数据库（Community或Enterprise版本）</li>
+              <li>启动Neo4j服务。通常可以通过Neo4j Desktop或命令行启动</li>
+              <li>配置数据库凭证。访问Neo4j浏览器界面http://localhost:7474/，默认用户名为neo4j。首次启动需要设置密码</li>
+              <li>在app.py文件中，修改数据库连接信息：</li>
+               <div class="code-block">
+                <span class="command" >graph=Graph('http://localhost:7474/', name='neo4j', password='您的密码')</span>
+              </div>
+            </ul>
+          </div>
+
+          <div class="step-item">
+            <strong>配置系统参数</strong>
+            <ul>
+              <li><strong>数据库连接配置：</strong> app.py中直接编码了Neo4j的连接信息，如需修改连接地址或数据库名，请编辑app.py</li>
+              <li><strong>大语言模型（LLM）配置：</strong> app.py中直接编码了LLM的API Key和基础URL，替换为您自己的有效APIKey和LLM服务提供商的正确API端点</li>
+            </ul>
+          </div>
+
+          <div class="step-item">
+            <strong>初始化系统</strong>
+            <ul>
+              <li>确保static/data/目录下存在以下文件：
+                <ul>
+                  <li>药品通说明书数据（8803条）.xlsx</li>
+                  <li>药品通数据_知识图谱.csv</li>
+                  <li>医学词典.txt</li>
+                  <li>中医药词表.txt</li>
+                  <li>stopwords.txt</li>
+                </ul>
+              </li>
+              <li>app.py在启动时会自动执行initial(graph)函数来清空并重建Neo4j知识图谱。注意：这会删除Neo4j中已有的所有节点和关系</li>
+            </ul>
+          </div>
+
+          <div class="step-item">
+            <strong>运行系统</strong><br>
+            确保Neo4j数据库服务已启动并可访问。确保LLM API配置正确。在项目根目录下，执行以下命令启动Flask应用：
+            <div class="code-block">
+              <span class="command">python app.py</span>
+            </div>
+            应用默认会在http://127.0.0.1:5000启动。
+          </div>
+
+          <div class="step-item">
+            <strong>查看是否安装成功</strong>
+            <ul>
+              <li>访问 http://127.0.0.1:5000，如果能看到包含"药品说明书智能检索系统"标题、功能导航栏、AI助手对话框等的页面，说明Flask服务已成功启动</li>
+              <li>尝试在首页的AI助手对话框中输入问题，如"布洛芬有什么禁忌？"，观察是否有响应返回</li>
+              <li>尝试点击导航栏中的"药品查询"、"药品比较"等链接，检查页面是否能正常加载</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="warning-box">
+          <div class="warning-title"><i class="fas fa-exclamation-triangle"></i> 重要提示</div>
+          <p>首次启动系统前，请确保Neo4j数据库已正确配置并运行，且app.py中的数据库连接参数与您的Neo4j设置匹配。否则系统将无法正常启动。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="manual-section" id="section6">
+      <div class="section-header">
+        <h2><i class="fas fa-play-circle"></i> 6. 系统启动</h2>
+      </div>
+      <div class="section-content">
+        <h3><i class="fas fa-server"></i> 6.1 启动依赖服务</h3>
+        <ul>
+          <li><strong>Windows：</strong> 通过Neo4j Desktop启动，或在命令行运行neo4j.bat console（在Neo4j安装目录下）</li>
+          <li><strong>Linux/macOS：</strong> 在终端运行bin/neo4j start(在Neo4j安装目录下)</li>
+        </ul>
+        <p>确认Neo4j在http://localhost:7474可访问，且Bolt端口7687已监听。</p>
+
+        <div class="figure-container">
+          <div class="figure-img">
+            <img src="static/image/图2.png" alt="截图 - 图2 启动neo4j" onerror="this.onerror=null; this.parentElement.textContent='[图片加载失败: static/image/图2.png]';">
+          </div>
+          <div class="figure-caption">图2：Neo4j启动界面示例</div>
+        </div>
+
+        <h3><i class="fas fa-power-off"></i> 6.2 启动系统程序</h3>
+        <ul>
+          <li>确保依赖服务已启动，进入系统根目录</li>
+            <li>执行启动命令：</li>
+            <div class="code-block">
+                <span class="command">python app.py</span>
+            </div>
+            <li>如需指定IP和端口，可以修改app.py中的app.run()参数，例如：<br></li>
+
+          <div class="code-block">
+                <span class="command">app.run(host='0.0.0.0', port=8080, debug=True)</span>
+          </div>
+          <li>启动成功后，根据app.py中app.run()的配置，在浏览器中输入对应的地址(http://127.0.0.1:5000)访问系统</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="manual-section" id="section7">
+      <div class="section-header">
+        <h2><i class="fas fa-magic"></i> 7. 系统具体功能及使用</h2>
+      </div>
+      <div class="section-content">
+        <h3><i class="fas fa-search"></i> 7.1 智能检索</h3>
+        <p><strong>功能定位：</strong> 作为系统的主入口，提供基于大语言模型（LLM）与检索增强生成（RAG）技术的自然语言交互服务。支持用户通过症状描述、用药疑问等自由文本输入，实现个性化药品查询、药品比较以及基于症状的药品匹配推荐，并结合交互式对话捕捉用户个性化需求，提供可视化知识图谱与精准用药参考，助力科学用药。</p>
+
+        <div class="step-container">
+          <div class="step-item">
+            进入系统首页后，点击顶部导航栏"智能检索"标签页或直接在首页输入框中提问
+          </div>
+          <div class="step-item">
+            在输入框中输入自然语言问题，例如"我有糖尿病，喉咙痛可以吃哪些药？""咳嗽发烧吃什么药好？"
+          </div>
+          <div class="step-item">
+            点击发送按钮提交请求，系统自动解析用户意图，判断是否为症状查询、药品推荐、药品比较等类型
+          </div>
+        </div>
+
+        <div class="figure-container">
+          <div class="figure-img">
+            <img src="static/image/图3.png" alt="截图 - 图3 智能检索首页" onerror="this.onerror=null; this.parentElement.textContent='[图片加载失败: static/image/图3.png]';">
+          </div>
+          <div class="figure-caption">图3：智能检索功能首页界面</div>
+        </div>
+
+        <div class="figure-container">
+          <div class="figure-img">
+            <img src="static/image/图4.png" alt="截图 - 图4 检索结果的对话区域可引导用户确认症状" onerror="this.onerror=null; this.parentElement.textContent='[图片加载失败: static/image/图4.png]';">
+          </div>
+          <div class="figure-caption">图4：系统对话引导用户确认症状</div>
+        </div>
+
+        <div class="figure-container">
+          <div class="figure-img">
+            <img src="static/image/图5.png" alt="截图 - 图5 智能检索结果页面" onerror="this.onerror=null; this.parentElement.textContent='[图片加载失败: static/image/图5.png]';">
+          </div>
+          <div class="figure-caption">图5：智能检索结果展示</div>
+        </div>
+
+        <div class="figure-container">
+          <div class="figure-img">
+            <img src="static/image/图6.png" alt="截图 - 图6 药品说明书详情页面" onerror="this.onerror=null; this.parentElement.textContent='[图片加载失败: static/image/图6.png]';">
+          </div>
+          <div class="figure-caption">图6：药品说明书详情页面</div>
+        </div>
+
+        <h3><i class="fas fa-pills"></i> 7.2 药品查询</h3>
+        <p><strong>功能定位：</strong> 支持用户通过药品名称（通用名、商品名、别名及模糊名称匹配）快速查找其完整说明书信息，是系统最常用的基础查询功能。</p>
+
+        <div class="step-container">
+          <div class="step-item">
+            点击顶部导航栏"药品查询"标签页
+          </div>
+          <div class="step-item">
+            在搜索框中输入目标药品名称，如"感冒灵颗粒"
+          </div>
+          <div class="step-item">
+            点击"搜索"按钮，系统将在本地知识库中进行精确检索或模糊匹配
+          </div>
+          <div class="step-item">
+            返回页面展示匹配药品列表，包含功能主治、主要成分、禁忌、指导价等关键字段，点击"详情"按钮，可跳转至完整说明书页面
+          </div>
+        </div>
+
+        <div class="figure-container">
+          <div class="figure-img">
+            <img src="static/image/图7.png" alt="截图 - 图7 药品查询首页" onerror="this.onerror=null; this.parentElement.textContent='[图片加载失败: static/image/图7.png]';">
+          </div>
+          <div class="figure-caption">图7：药品查询功能首页</div>
+        </div>
+
+        <div class="figure-container">
+          <div class="figure-img">
+            <img src="static/image/图8.png" alt="截图 - 图8 药品查询返回结果页面" onerror="this.onerror=null; this.parentElement.textContent='[图片加载失败: static/image/图8.png]';">
+          </div>
+          <div class="figure-caption">图8：药品查询结果页面</div>
+        </div>
+
+        <h3><i class="fas fa-balance-scale"></i> 7.3 药品比较</h3>
+        <p><strong>功能定位：</strong> 用户输入需比较的药品名称或相关需求，系统自动识别目标药品，从疗效、安全性、价格、剂型等维度提取关键信息，生成结构化对比报告，清晰呈现各药品优劣与适用场景，助力精准选药。</p>
+
+        <div class="step-container">
+          <div class="step-item">
+            点击顶部导航栏"药品比较"标签页
+          </div>
+          <div class="step-item">
+            在输入框中依次添加需比较的药品名称，如"布洛芬"和"感冒灵"
+          </div>
+          <div class="step-item">
+            可点击"+ 添加药品"继续增加对比项，最多支持4个药品同时比较
+          </div>
+          <div class="step-item">
+            点击"开始对比"按钮，系统自动提取各药品的核心属性
+          </div>
+          <div class="step-item">
+            返回结果页面通过生成结构化对比表格，列明所对比药物在各项属性的差异，包括但不限于：商品名称、英文名称、汉语拼音、指导价、是否为处方药、药物成分、功能主治、用法用量、不良反应、禁忌症、药物相互作用等
+          </div>
+        </div>
+
+        <div class="figure-container">
+          <div class="figure-img">
+            <img src="static/image/图9.png" alt="截图 - 图9 药品比较首页" onerror="this.onerror=null; this.parentElement.textContent='[图片加载失败: static/image/图9.png]';">
+          </div>
+          <div class="figure-caption">图9：药品比较功能首页</div>
+        </div>
+
+        <div class="figure-container">
+          <div class="figure-img">
+            <img src="static/image/图10.png" alt="截图 - 图10 药品比较返回结果页面" onerror="this.onerror=null; this.parentElement.textContent='[图片加载失败: static/image/图10.png]';">
+          </div>
+          <div class="figure-caption">图10：药品比较结果页面</div>
+        </div>
+
+        <h3><i class="fas fa-project-diagram"></i> 7.4 知识图谱</h3>
+        <p><strong>功能定位：</strong> 基于药品知识图谱构建的可视化探索工具，揭示药品与其相关实体之间的复杂关联，助力深度理解用药逻辑。</p>
+
+        <div class="step-container">
+          <div class="step-item">
+            点击顶部导航栏"知识图谱"标签页
+          </div>
+          <div class="step-item">
+            页面提供"节点查询"和"关系查询"两种查询模式。其中，节点查询为默认选项，用于查找特定实体及其直接关联；可选关系查询，用于探索特定关系路径
+          </div>
+          <div class="step-item">
+            "节点类型"下拉菜单中可选择实体类别，包括药品、成分、适应症、剂型、用法和特殊人群，在"关键词"输入框中输入目标词，如"布洛芬片"
+          </div>
+          <div class="step-item">
+            "关系查询"下拉菜单中可选择关系类型，包括使用途径、采用剂型、包含成分、功能主治、忌用人群、禁用人群和慎用人群
+          </div>
+          <div class="step-item">
+            点击"查询"按钮，系统将在Neo4j图数据库中执行图遍历查询
+          </div>
+          <div class="step-item">
+            查询结果以知识图谱形式展示，中心节点为查询对象，周边节点为其关联实体
+          </div>
+        </div>
+
+        <div class="figure-container">
+          <div class="figure-img">
+            <img src="static/image/图11.png" alt="截图 - 图11 知识图谱查询首页" onerror="this.onerror=null; this.parentElement.textContent='[图片加载失败: static/image/图11.png]';">
+          </div>
+          <div class="figure-caption">图11：知识图谱查询首页</div>
+        </div>
+
+        <div class="figure-container">
+          <div class="figure-img">
+            <img src="static/image/图12.png" alt="截图 - 图12 节点查询模式" onerror="this.onerror=null; this.parentElement.textContent='[图片加载失败: static/image/图12.png]';">
+          </div>
+          <div class="figure-caption">图12：节点查询模式</div>
+        </div>
+
+        <div class="figure-container">
+          <div class="figure-img">
+            <img src="static/image/图13.png" alt="截图 - 图13 关系查询模式" onerror="this.onerror=null; this.parentElement.textContent='[图片加载失败: static/image/图13.png]';">
+          </div>
+          <div class="figure-caption">图13：关系查询模式</div>
+        </div>
+
+        <div class="figure-container">
+          <div class="figure-img">
+            <img src="static/image/图14.png" alt="截图 - 图14 查询结果页面" onerror="this.onerror=null; this.parentElement.textContent='[图片加载失败: static/image/图14.png]';">
+          </div>
+          <div class="figure-caption">图14：知识图谱查询结果页面</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="note-box">
+      <div class="note-title"><i class="fas fa-info-circle"></i> 使用提示</div>
+      <p>本手册介绍的功能基于系统V1.0版本。系统将持续优化升级，更多功能和改进敬请关注后续版本更新。如在使用过程中遇到问题，可通过系统内的"联系我们"功能获取技术支持。</p>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-col">
+        <div class="footer-logo">
+          药品说明书智能检索系统
+        </div>
+        <p class="text-white-50">融合知识图谱与LLM-RAG技术，为公众提供精准、专业的药品信息服务。</p>
+      </div>
+      <div class="footer-col">
+        <h3>功能导航</h3>
+        <a href="/" class="footer-link">首页</a>
+        <a href="/knowledgegraph" class="footer-link">知识图谱</a>
+        <a href="/manual" class="footer-link">用户手册</a>
+      </div>
+      <div class="footer-col">
+        <h3>数据服务</h3>
+        <a href="/search" class="footer-link">药品查询</a>
+        <a href="/compare" class="footer-link">药品比较</a>
+        <a href="/manual#section7" class="footer-link">功能详解</a>
+      </div>
+      <div class="footer-col">
+        <h3>联系我们</h3>
+        <p class="text-white-50 mb-2"><i class="fas fa-map-marker-alt me-2"></i>北京市朝阳区北三环东路11号</p>
+        <p class="text-white-50 mb-2"><i class="fas fa-phone me-2"></i>010 6428 6719</p>
+        <p class="text-white-50 mb-3"><i class="fas fa-envelope me-2"></i>20210423022@bucm.edu.cn</p>
+        <button class="btn btn-outline-light btn-sm" onclick="window.location.href='mailto:20210423022@bucm.edu.cn'"><i class="fas fa-paper-plane me-2"></i>发送邮件</button>
+      </div>
+    </div>
+    <hr class="my-4" style="border-color: rgba(255, 255, 255, 0.1);">
+    <div class="footer-bottom">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-auto text-center">
+            <p class="text-white-50 small mb-0">&copy; 2026 北京中医药大学 人工智能与大数据教研室 保留所有权利.</p>
+          </div>
+          <div class="col-auto text-center">
+            <p class="text-white-50 small mb-0">数据来源：国家药品监督管理局 | 仅供学术研究使用</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+
+    document.querySelectorAll('.toc-list a').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+
+        const targetId = this.getAttribute('href');
+        const targetElement = document.querySelector(targetId);
+
+        if (targetElement) {
+          window.scrollTo({
+            top: targetElement.offsetTop - 80,
+            behavior: 'smooth'
+          });
+        }
+      });
+    });
+
+    document.querySelectorAll('.section-header').forEach(header => {
+      header.addEventListener('click', function() {
+        const content = this.nextElementSibling;
+        const isHidden = content.style.display === 'none';
+
+        document.querySelectorAll('.section-content').forEach(el => {
+          el.style.display = 'none';
+        });
+
+        content.style.display = isHidden ? 'block' : 'none';
+      });
+    });
+  </script>
+
+</body>
+</html>

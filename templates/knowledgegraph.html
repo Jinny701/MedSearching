@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>知识图谱查询</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #f5f7fa;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .navbar {
+      background-color: #003399;
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .nav-links {
+      display: flex;
+      gap: 1.2rem;
+    }
+
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 1rem;
+    }
+
+    .nav-links a:hover {
+      text-decoration: underline;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .compare-hero {
+      height: auto; 
+      background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 1)),
+                  url("static/image/a1.jpg") center/cover;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 10rem 1rem; 
+      position: relative;
+      z-index: 2;
+      transition:padding 0.5s ease, align-items 0.5s ease;
+    }
+    .compare-hero.shrink {
+      padding: 0.5rem 1rem;
+      align-items: flex-start !important; 
+    }
+
+    .content-section {
+        transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+    }
+
+    .compare-hero h1 {
+      color: #003399;
+      margin-bottom: 1rem;
+      font-size: 2.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      transition: all 0.5s ease;
+    }
+    .compare-hero h1.shrink {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      margin-left: 10%;
+      margin-right: 10%;
+      width: 80%; 
+    }
+
+    .mode-switch {
+      display: flex;
+      gap: 1rem;
+      justify-content: center; 
+      margin-bottom: 1.5rem;
+      
+      transition: gap 0.5s ease, margin-bottom 0.5s ease;
+    }
+
+    .mode-switch.shrink {
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      justify-content: flex-start;
+      margin-left: 10%;
+      margin-right: 10%;
+      width: 80%; 
+    }
+
+    .mode-btn {
+      padding: 0.75rem 1.5rem;
+      border: 1px solid #ccc;
+      background: #fff;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.3s;
+      font-size: 1rem;
+      flex: 0 0 auto;
+    }
+    .mode-btn.shrink {
+      padding: 0.4rem 1.2rem;
+      font-size: 0.85rem;
+      min-width: 80px;
+    }
+
+    .mode-btn.active {
+      background: #003399;
+      color: white;
+      border-color: #003399;
+    }
+
+    .query-form {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+      max-width: 700px;
+      width: 100%;
+      transition: all 0.5s ease; 
+    }
+    .query-form.shrink {
+      margin-left: 10%;
+      margin-right: 10%;
+      padding: 0.8rem;
+      width: 80%; 
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      margin-bottom: 1rem;
+      transition: gap 0.5s ease; 
+    }
+    .form-row.shrink {
+        gap: 5px;
+    }
+
+    .form-group {
+      flex: 1;
+      margin-bottom: 0;
+    }
+
+    .form-label {
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      display: block;
+      font-size: 0.9rem;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: all 0.3s ease; 
+    }
+    .form-control.shrink {
+        padding: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .btn-primary {
+      background-color: #003399;
+      border-color: #003399;
+      padding: 0.75rem 1.5rem;
+      border-radius: 6px;
+      font-weight: 600;
+      width: 100%;
+      margin-top: 0.5rem;
+      transition: all 0.3s ease; 
+    }
+    .btn-primary.shrink {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .btn-primary:hover {
+      background-color: #002166;
+    }
+
+    #knowledge-graph {
+      width: 100%;
+      height: 600px;
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      transition: height 0.5s ease; 
+    }
+
+    .no-data {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #999;
+      font-size: 1.2rem;
+      text-align: center;
+    }
+
+    .node circle {
+      stroke: #fff;
+      stroke-width: 1.5px;
+    }
+
+    .node text {
+      font-size: 12px;
+      fill: #333;
+    }
+
+    .link {
+      stroke: #999;
+      stroke-opacity: 0.6;
+      stroke-width: 1.5px;
+    }
+
+    .link-label {
+      font-size: 10px;
+      fill: #666;
+      font-weight: 500;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo">
+      <i class="fas fa-capsules"></i>
+      药品说明书智能检索系统
+    </div>
+    <div class="nav-links">
+      <a href="/"><i class="fas fa-robot"></i> 智能检索</a>
+      <a href="/search"><i class="fas fa-search"></i> 药品查询</a>
+      <a href="/compare"><i class="fas fa-scale-balanced"></i> 药品比较</a>
+      <a href="/knowledgegraph"><i class="fas fa-project-diagram"></i> 知识图谱</a>
+      <a href="/manual"><i class="fas fa-book"></i> 用户手册</a>
+    </div>
+  </nav>
+
+  <div class="compare-hero content-section" id="compare-hero">
+    <h1 id="compare-h1"><i class="fas fa-project-diagram"></i>知识图谱查询</h1>
+
+    <div class="mode-switch" id="mode-switch">
+      <button class="mode-btn active" data-mode="node">节点查询</button>
+      <button class="mode-btn" data-mode="relation">关系查询</button>
+    </div>
+
+    <div id="node-query" class="query-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">节点类型</label>
+          <select class="form-control" id="node-type">
+            <option value="药品">药品</option>
+            <option value="成分">成分</option>
+            <option value="适应症">适应症</option>
+            <option value="剂型">剂型</option>
+            <option value="用法">用法</option>
+            <option value="特殊人群">特殊人群</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">关键词</label>
+          <input type="text" class="form-control" id="node-keyword" placeholder="请输入关键词">
+        </div>
+      </div>
+      <button class="btn-primary" onclick="queryNode()">查询</button>
+    </div>
+
+    <div id="relation-query" class="query-form hidden">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">起始节点</label>
+          <input type="text" class="form-control" id="start-node" placeholder="如：阿司匹林">
+        </div>
+        <div class="form-group">
+          <label class="form-label">关系类型</label>
+          <select class="form-control" id="relation-type">
+            <option value="使用途径">使用途径</option>
+            <option value="采用剂型">采用剂型</option>
+            <option value="包含成分">包含成分</option>
+            <option value="功能主治">功能主治</option>
+            <option value="忌用人群">忌用人群</option>
+            <option value="禁用人群">禁用人群</option>
+            <option value="慎用人群">慎用人群</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">目标节点</label>
+          <input type="text" class="form-control" id="end-node" placeholder="如：口服">
+        </div>
+      </div>
+      <button class="btn-primary" onclick="queryRelation()">查询</button>
+    </div>
+
+    <div id="knowledge-graph">
+      <div class="no-data" id="no-data">点击查询按钮加载知识图谱...</div>
+    </div>
+  </div>
+
+  <script>
+    let isShrunk = false;
+
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mode = btn.getAttribute('data-mode');
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('node-query').classList.add('hidden');
+        document.getElementById('relation-query').classList.add('hidden');
+        document.getElementById(mode + '-query').classList.remove('hidden');
+
+        if (isShrunk) {
+            applyShrinkEffect();
+        }
+      });
+    });
+
+    function applyShrinkEffect() {
+      isShrunk = true;
+
+      const compareHero = document.getElementById('compare-hero');
+      const compareH1 = document.getElementById('compare-h1');
+      const modeSwitch = document.getElementById('mode-switch');
+      const queryForm = document.querySelector('.query-form:not(.hidden)');
+      const formRows = queryForm.querySelectorAll('.form-row');
+      const formControls = queryForm.querySelectorAll('.form-control');
+      const btnPrimary = queryForm.querySelector('.btn-primary');
+
+      compareHero.classList.add('shrink');
+      compareH1.classList.add('shrink');
+      modeSwitch.classList.add('shrink');
+      document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.add('shrink'));
+      queryForm.classList.add('shrink');
+      formRows.forEach(row => row.classList.add('shrink'));
+      formControls.forEach(control => control.classList.add('shrink'));
+      btnPrimary.classList.add('shrink');
+    }
+
+    async function performQuery(queryParams, queryType) {
+
+        if (!isShrunk) {
+            applyShrinkEffect();
+        }
+
+        try {
+            let res;
+            let data;
+
+            if (queryType === 'node') {
+                const { type, keyword } = queryParams;
+                if (!keyword) {
+                    alert("请输入关键词！");
+                    return;
+                }
+                res = await fetch('/api/node', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({"type": type, "keyword":keyword })
+                });
+            } else if (queryType === 'relation') {
+                const { start, rel, end } = queryParams;
+                if (!start && !end) {
+                    alert("起始节点和目标节点不能均为空！");
+                    return;
+                }
+                res = await fetch('/api/relation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ "start":start, "rel":rel,"end": end })
+                });
+            }
+
+            if (!res.ok) {
+                 throw new Error(`API Error: ${res.status} ${res.statusText}`);
+            }
+            data = await res.json();
+            neo4jPrint(data.nodes, data.edges);
+            if (data.nodes.length==0){
+                const nodata=document.getElementById('no-data');
+                nodata.innerText="知识图谱中无此节点或关系。";
+                nodata.style.display="block";
+            }
+        } catch (err) {
+            console.error("查询失败:", err);
+            alert("查询失败，请检查网络或参数。详细错误: " + err.message);
+        }
+    }
+
+    async function queryNode() {
+        const type = document.getElementById('node-type').value;
+        const keyword = document.getElementById('node-keyword').value.trim();
+        await performQuery({ type, keyword }, 'node');
+    }
+
+    async function queryRelation() {
+        const start = document.getElementById('start-node').value.trim();
+        const end = document.getElementById('end-node').value.trim();
+        const rel = document.getElementById('relation-type').value;
+        await performQuery({ start, rel, end }, 'relation');
+    }
+
+    function neo4jPrint(nodes, tempEdges) {
+        const width = document.getElementById('knowledge-graph').clientWidth;
+        const height = document.getElementById('knowledge-graph').clientHeight;
+        const nodata=document.getElementById('no-data');
+        nodata.style.display="none"
+
+        d3.select("#knowledge-graph").select("svg").remove();
+
+        const svg = d3.select("#knowledge-graph")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        const g = svg.append("g");
+
+        svg.append("defs").selectAll("marker")
+            .data(["end"])
+            .enter().append("marker")
+            .attr("id", d => d)
+            .attr("viewBox", "0 -5 10 10")
+            .attr("refX", 25)
+            .attr("refY", 0)
+            .attr("markerWidth", 6)
+            .attr("markerHeight", 6)
+            .attr("orient", "auto")
+            .append("path")
+            .attr("d", "M0,-5L10,0L0,5")
+            .attr("fill", "#94a3b8");
+
+        const simulation = d3.forceSimulation(nodes)
+            .force("charge", d3.forceManyBody().strength(-300))
+            .force("link", d3.forceLink(tempEdges).id(d => d.id).distance(100))
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("collision", d3.forceCollide().radius(d => d.type === 'm' ? 30 : 35));
+
+        const links = g.append("g")
+            .selectAll("line")
+            .data(tempEdges)
+            .enter().append("line")
+            .attr("stroke", "#94a3b8")
+            .attr("stroke-width", 2)
+            .attr("marker-end", "url(#end)");
+
+        const linkText = g.append("g")
+            .selectAll("text")
+            .data(tempEdges)
+            .enter().append("text")
+            .attr("font-size", 10)
+            .attr("fill", "#64748b")
+            .text(d => d.relation || "");
+
+        const nodeGroups = g.append("g")
+            .selectAll("g")
+            .data(nodes)
+            .enter().append("g")
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended));
+
+        nodeGroups.append("circle")
+            .attr("r", d => d.type === 'm' ? 27 : 30)
+            .attr("fill", d => d.type === 'm' ? '#ECB5C9' : '#4C8EDA')
+            .attr("stroke", d => d.type === 'm' ? '#DA7298' : '#2870C2')
+            .attr("stroke-width", 2)
+            .attr("cursor", "move");
+
+        nodeGroups.append("text")
+            .text(d => d.name)
+            .attr("text-anchor", "middle")
+            .attr("dy", d => 12 - (Math.ceil(d.name.length / 4) * 12) / 2)
+            .attr("fill", "white")
+            .style("font-size", "12px")
+            .style("pointer-events", "none")
+            .call(wrapText, 50);
+
+        const zoom = d3.zoom()
+            .scaleExtent([0.1, 5])
+            .on("zoom", (event) => {
+                g.attr("transform", event.transform);
+            });
+
+        svg.call(zoom);
+
+        simulation.on("tick", () => {
+            links
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+
+            linkText
+                .attr("x", d => (d.source.x + d.target.x) / 2)
+                .attr("y", d => (d.source.y + d.target.y) / 2);
+
+            nodeGroups
+                .attr("transform", d => `translate(${d.x},${d.y})`);
+        });
+
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+
+        }
+    }
+
+    function wrapText(text, width) {
+        text.each(function() {
+            const element = d3.select(this);
+            const originalText = element.text();
+            const fontSize = parseFloat(element.style("font-size")) || 12;
+            const lineHeight = fontSize * 1.2;
+            const padding = 2;
+            const MAX_LINES = 3;
+
+            element.text(null);
+
+            const wrapper = element.append("tspan")
+                .attr("x", 0)
+                .style("alignment-baseline", "hanging");
+
+            function measureText(textContent) {
+                const temp = wrapper.append("tspan")
+                    .text(textContent)
+                    .style("visibility", "hidden");
+                const width = temp.node().getComputedTextLength();
+                temp.remove();
+                return width;
+            }
+
+            const characters = originalText.split("");
+            let line = [];
+            let currentLineWidth = 0;
+            let lineCount = 0;
+            let lines = [];
+
+            for (let i = 0; i < characters.length; i++) {
+                const char = characters[i];
+
+                if (lineCount >= MAX_LINES) break;
+
+                const charWidth = measureText(char);
+
+                if (currentLineWidth + charWidth > width - padding) {
+
+                    lines.push(line.join(""));
+                    lineCount++;
+
+                    if (lineCount >= MAX_LINES) {
+                        let lastLine = lines[MAX_LINES - 1];
+
+                        while (lastLine.length > 0 && measureText(lastLine + "...") > width - padding) {
+                            lastLine = lastLine.slice(0, -1);
+                        }
+                        lines[MAX_LINES - 1] = lastLine + "...";
+                        break;
+                    }
+
+                    line = [char];
+                    currentLineWidth = charWidth;
+                } else {
+
+                    line.push(char);
+                    currentLineWidth += charWidth;
+                }
+
+                if (i === characters.length - 1 && lineCount < MAX_LINES) {
+                    lines.push(line.join(""));
+                    lineCount++;
+                }
+            }
+
+            const totalHeight = lineHeight * lineCount;
+            const startDy = -(totalHeight / 2) + 6*lineHeight/7;
+
+            lines.slice(0, MAX_LINES).forEach((lineText, i) => {
+                wrapper.append("tspan")
+                    .attr("x", 0)
+                    .attr("dy", i === 0 ? `${startDy}px` : lineHeight)
+                    .text(lineText);
+            });
+        });
+    }
+
+    document.getElementById('relation-query').classList.add('hidden');
+  </script>
+
+</body>
+</html>

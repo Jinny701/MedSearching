@@ -1,0 +1,380 @@
+{# AI辅助生成:Doubao-Seed-2.0-pro,2026-4-12 #}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{tymc}}药品信息</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .navbar {
+            background-color: #003399;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 1rem;
+        }
+
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-btn-container {
+            margin: 2rem auto;
+            max-width: 1200px;
+            padding: 0 1rem;
+        }
+
+        .back-btn {
+            background: #003399;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-btn:hover {
+            background: #002166;
+            transform: translateX(-2px);
+        }
+
+        .drug-detail-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .drug-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+            border: 1px solid #eaeaea;
+            margin-bottom: 2rem;
+        }
+
+        .drug-header {
+            background: linear-gradient(135deg, #003399 0%, #0047cc 100%);
+            color: white;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .drug-title {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .drug-subtitle {
+            color: rgba(255,255,255,0.85);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .drug-meta {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .drug-names {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .drug-names div {
+            font-size: 0.95rem;
+        }
+
+        .drug-price {
+            background: rgba(255,255,255,0.15);
+            padding: 1rem;
+            border-radius: 8px;
+            min-width: 180px;
+            text-align: center;
+        }
+
+        .price-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .prescription-tag {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .drug-content {
+            padding: 2rem;
+        }
+
+        .info-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #003399;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .info-content {
+            color: #495057;
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .drug-title {
+                font-size: 1.6rem;
+            }
+
+            .drug-header {
+                padding: 1.5rem;
+            }
+
+            .drug-meta {
+                flex-direction: column;
+            }
+
+            .drug-price {
+                width: 100%;
+            }
+
+            .price-value {
+                font-size: 1.4rem;
+            }
+
+            .drug-content {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fas fa-capsules"></i>
+            药品说明书智能检索系统
+        </div>
+        <div class="nav-links">
+            <a href="/"><i class="fas fa-robot"></i> 智能检索</a>
+            <a href="/search"><i class="fas fa-search"></i> 药品查询</a>
+            <a href="/compare"><i class="fas fa-scale-balanced"></i> 药品比较</a>
+            <a href="/knowledgegraph"><i class="fas fa-project-diagram"></i> 知识图谱</a>
+            <a href="/manual"><i class="fas fa-book"></i> 用户手册</a>
+        </div>
+    </nav>
+
+    <div class="back-btn-container">
+        <a href="javascript:history.back()" class="back-btn">
+            <i class="fas fa-chevron-left"></i>
+            返回查询界面
+        </a>
+    </div>
+
+    <div class="drug-detail-container">
+        <div class="drug-card">
+            <div class="drug-header">
+                <h1 class="drug-title">{{tymc}}</h1>
+                <div class="drug-subtitle">{{spmc}}</div>
+                <div class="drug-meta">
+                    <div class="drug-names">
+                        <div><strong>英文名称：</strong>{{ ywmc }}</div>
+                        <div><strong>汉语拼音：</strong>{{ hypy }}</div>
+                    </div>
+                    <div class="drug-price">
+                        <div class="price-label">指导价格</div>
+                        <div class="price-value">{{zdj}}</div>
+                    </div>
+                </div>
+                <div class="prescription-tag">
+                    <i class="fas fa-prescription-bottle-alt" style="margin-right: 0.5rem;"></i>
+                    {{cfy}}
+                </div>
+            </div>
+
+            <div class="drug-content">
+                <div class="info-grid">
+                    <div>
+                        <div class="info-section">
+                            <div class="section-title">
+                                <i class="fas fa-pills"></i> 成分
+                            </div>
+                            <div class="info-content">{{cf}}</div>
+                        </div>
+
+                        <div class="info-section">
+                            <div class="section-title">
+                                <i class="fas fa-vial"></i> 性状
+                            </div>
+                            <div class="info-content">{{xz}}</div>
+                        </div>
+
+                        <div class="info-section">
+                            <div class="section-title">
+                                <i class="fas fa-heartbeat"></i> 适应症
+                            </div>
+                            <div class="info-content">{{syz}}</div>
+                        </div>
+
+                        <div class="info-section">
+                            <div class="section-title">
+                                <i class="fas fa-prescription"></i> 用法用量
+                            </div>
+                            <div class="info-content">{{yfyl}}</div>
+                        </div>
+
+                        <div class="info-section">
+                            <div class="section-title">
+                                <i class="fas fa-exclamation-triangle"></i> 不良反应
+                            </div>
+                            <div class="info-content">{{blfy}}</div>
+                        </div>
+
+                        <div class="info-section">
+                            <div class="section-title">
+                                <i class="fas fa-ban"></i> 禁忌
+                            </div>
+                            <div class="info-content">{{jj}}</div>
+                        </div>
+                        <div class="info-section">
+                            <div class="section-title">
+                                <i class="fas fa-info-circle"></i> 注意事项
+                            </div>
+                            <div class="info-content">{{zysx}}</div>
+                        </div>
+                    </div>
+                    <div>
+
+                        <div class="info-section">
+                            <div class="section-title">
+                                <i class="fas fa-user-shield"></i> 特殊人群用药
+                            </div>
+                            <div class="info-content">{{tsrqyy}}</div>
+                        </div>
+
+                        <div class="info-section">
+                            <div class="section-title">
+                                <i class="fas fa-capsules"></i> 药物相互作用
+                            </div>
+                            <div class="info-content">{{ywxhzy}}</div>
+                        </div>
+
+                        <div class="info-section">
+                            <div class="section-title">
+                                <i class="fas fa-flask"></i> 药理作用
+                            </div>
+                            <div class="info-content">{{ylzy}}</div>
+                        </div>
+
+                        <div class="info-section">
+                            <div class="section-title">
+                                <i class="fas fa-box"></i> 贮藏
+                            </div>
+                            <div class="info-content">{{zc}}</div>
+                        </div>
+
+                        <div class="info-section">
+                            <div class="section-title">
+                                <i class="fas fa-ruler"></i> 规格
+                            </div>
+                            <div class="info-content">{{gg}}</div>
+                        </div>
+
+                        <div class="info-section">
+                            <div class="section-title">
+                                <i class="fas fa-cube"></i> 包装规格
+                            </div>
+                            <div class="info-content">{{ bzgg}}</div>
+                        </div>
+
+                        <div class="info-section">
+                            <div class="section-title">
+                                <i class="fas fa-calendar-check"></i> 有效期
+                            </div>
+                            <div class="info-content">{{ yxq}}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
