@@ -23,9 +23,9 @@ NEO4J_DATABASE = os.environ.get('NEO4J_DATABASE', 'neo4j')
 graph = Graph(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD), name=NEO4J_DATABASE)
 def llm(proset,text):
     client = OpenAI(
-        api_key = "sk-ftCFLyV6YJOlSdXJ6q5fTbGwMmxXwuRYQlim9lqJ8OE9C1OS",
-        base_url = "https://api.moonshot.cn/v1",
-    )
+    api_key = os.environ.get('OPENAI_API_KEY'),  # 从环境变量读取
+    base_url = "https://api.moonshot.cn/v1",
+)
     completion = client.chat.completions.create(
         model = "moonshot-v1-32k",
         messages = [
