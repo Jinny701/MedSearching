@@ -13,7 +13,14 @@ from sklearn.metrics.pairwise import cosine_similarity
 from py2neo import Graph, Subgraph
 from py2neo import Node, Relationship, Path
 from py2neo import Node, Relationship, Graph, NodeMatcher, RelationshipMatcher
-graph = Graph('http://localhost:7474/', name='neo4j', password='136339fkm')
+# graph = Graph('http://localhost:7474/', name='neo4j', password='136339fkm')
+import os
+NEO4J_URI = os.environ.get('NEO4J_URI', 'neo4j+s://c6aad755.databases.neo4j.io')
+NEO4J_USER = os.environ.get('NEO4J_USERNAME', 'neo4j')
+NEO4J_PASSWORD = os.environ.get('NEO4J_PASSWORD')
+NEO4J_DATABASE = os.environ.get('NEO4J_DATABASE', 'neo4j')
+
+graph = Graph(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD), name=NEO4J_DATABASE)
 def llm(proset,text):
     client = OpenAI(
         api_key = "sk-ftCFLyV6YJOlSdXJ6q5fTbGwMmxXwuRYQlim9lqJ8OE9C1OS",
@@ -256,7 +263,7 @@ def med_replace(text,massage=''):
 import pandas as pd
 import json
 def initial(graph):
-    graph = Graph('http://localhost:7474/', name='neo4j', password='136339fkm')
+    # graph = Graph('http://localhost:7474/', name='neo4j', password='136339fkm')
     data=pd.read_csv("static/data/药品通数据_知识图谱.csv",encoding="ANSI")
     data = data[data["功效或适应症"] != '{}']
     data["成分明细"]=data["成分明细"].str.replace("±"," ")
